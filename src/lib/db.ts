@@ -4,7 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function create() {
-  const adapter = new PrismaPg({ connectionString: (process.env.DATABASE_URL || process.env.POSTGRES_URL)! });
+  const adapter = new PrismaPg({ connectionString: [process.env.DATABASE_URL, process.env.POSTGRES_URL, process.env.DATABASE_URL_UNPOOLED].find((u) => !!u && /^postgres(ql)?:\/\//.test(u))! });
   return new PrismaClient({ adapter });
 }
 

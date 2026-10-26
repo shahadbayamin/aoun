@@ -18,15 +18,18 @@ const run = (cmd, args) => {
   if (r.status !== 0) { console.error(`[aoun-build] ${cmd} ${args.join(" ")} failed`); process.exit(r.status || 1); }
 };
 
-if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) process.env.DATABASE_URL = process.env.POSTGRES_URL;
+// Vercel databases (Neon, Prisma Postgres) expose several URLs; use a plain postgres:// one.
+const plain = (u) => !!u && /^postgres(ql)?:\/\//.test(u);
+process.env.DATABASE_URL = [process.env.DATABASE_URL, process.env.POSTGRES_URL, process.env.DATABASE_URL_UNPOOLED, process.env.POSTGRES_URL_NON_POOLING].find(plain) || "";
 if (!process.env.DATABASE_URL) {
-  console.error("[aoun-build] DATABASE_URL is missing — add a Postgres database (Vercel → Storage → Neon) and redeploy.");
+  console.error("[aoun-build] DATABASE_URL is missing — add a Postgres database (Vercel → Storage → Prisma Postgres or Neon) and redeploy.");
   process.exit(1);
 }
 process.env.DEMO_MODE ??= "true";
 process.env.OTP_FIXED_CODE ??= "123456";
 
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL });
+const direct = [process.env.DATABASE_URL_UNPOOLED, process.env.POSTGRES_URL_NON_POOLING].find(plain) || process.env.DATABASE_URL;
+const client = new pg.Client({ connectionString: direct });
 await client.connect();
 
 // 1) migrations
@@ -62,7 +65,7 @@ await client.end();
 if (!hospitals || have !== want) {
   log("loading demo data (version", want + ")");
   run(process.execPath, [path.join(ROOT, "node_modules/tsx/dist/cli.mjs"), "prisma/seed.ts"]);
-  const c2 = new pg.Client({ connectionString: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL });
+  const c2 = new pg.Client({ connectionString: direct });
   await c2.connect();
   await c2.query(`INSERT INTO "AppSecret"("name","value") VALUES ('SEED_VERSION',$1) ON CONFLICT ("name") DO UPDATE SET "value" = EXCLUDED."value"`, [want]);
   await c2.end();

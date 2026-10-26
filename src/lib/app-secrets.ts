@@ -9,7 +9,12 @@ import pg from "pg";
 const NAMES = ["STORAGE_ENCRYPTION_KEY", "SECRETS_ENCRYPTION_KEY", "IDENTITY_PEPPER"] as const;
 
 export function applyCloudDefaults() {
-  if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) process.env.DATABASE_URL = process.env.POSTGRES_URL;
+  // Vercel databases (Neon, Prisma Postgres) expose several URLs; the app needs a plain postgres:// one.
+  const plain = (u?: string) => !!u && /^postgres(ql)?:\/\//.test(u);
+  if (!plain(process.env.DATABASE_URL)) {
+    const alt = [process.env.POSTGRES_URL, process.env.DATABASE_URL_UNPOOLED, process.env.POSTGRES_URL_NON_POOLING].find(plain);
+    if (alt) process.env.DATABASE_URL = alt;
+  }
   if (process.env.VERCEL) {
     process.env.DEMO_MODE ??= "true";
     process.env.OTP_FIXED_CODE ??= "123456";
