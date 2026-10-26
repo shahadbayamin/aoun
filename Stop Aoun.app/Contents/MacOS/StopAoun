@@ -1,0 +1,14 @@
+#!/bin/bash
+# Stops the Aoun website and its database cleanly.
+ROOT="$(dirname "$(cd "$(dirname "$0")/../.." && pwd)")"
+PIDFILE="$ROOT/.taree-data/taree.pid"
+if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+  kill -TERM "$(cat "$PIDFILE")"
+  for i in $(seq 1 20); do kill -0 "$(cat "$PIDFILE" 2>/dev/null)" 2>/dev/null || break; sleep 0.5; done
+  MSG="تم إيقاف عون. / Aoun has been stopped."
+else
+  FOUND=""
+  for port in 3000 54329; do for p in $(lsof -ti tcp:$port -sTCP:LISTEN 2>/dev/null); do kill "$p" 2>/dev/null; FOUND=1; done; done
+  if [ -n "$FOUND" ]; then MSG="تم إيقاف عون. / Aoun has been stopped."; else MSG="عون غير قيد التشغيل. / Aoun is not running."; fi
+fi
+osascript -e "display notification \"$MSG\" with title \"عون Aoun\"" >/dev/null 2>&1

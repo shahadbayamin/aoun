@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-canvas text-navy antialiased; font-feature-settings: "kern"; }
+  :focus-visible { outline: 2px solid #3478C0; outline-offset: 2px; border-radius: 6px; }
+  h1, h2, h3 { @apply text-navy; letter-spacing: -0.01em; }
+  [dir="rtl"] .ltr-nums { direction: ltr; unicode-bidi: isolate; }
+}
+
+@layer components {
+  .card { @apply min-w-0 bg-white rounded-2xl border border-slate-200/70 shadow-card; }
+  .card-pad { @apply p-5 sm:p-6; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap; }
+  .btn-primary { @apply btn bg-teal text-white hover:bg-teal-600 shadow-sm; }
+  .btn-blue { @apply btn bg-medblue text-white hover:bg-medblue-600 shadow-sm; }
+  .btn-secondary { @apply btn bg-white text-navy border border-slate-300 hover:bg-slate-50; }
+  .btn-ghost { @apply btn text-navy-500 hover:bg-slate-100; }
+  .btn-danger { @apply btn bg-emergency text-white hover:bg-emergency-600 shadow-sm; }
+  .btn-lg { @apply px-6 py-3.5 text-base rounded-2xl; }
+  .input { @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:border-medblue focus:outline-none focus:ring-2 focus:ring-medblue/20; }
+  .label { @apply mb-1.5 block text-sm font-medium text-navy-700; }
+  .hint { @apply mt-1 text-xs text-navy-400; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap; }
+  .table { @apply w-full text-sm; }
+  .table th { @apply bg-slate-50 px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-navy-400; }
+  .table td { @apply border-t border-slate-100 px-4 py-3 align-middle; }
+  .nav-link { @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition; }
+  .nav-link-active { @apply bg-white/15 text-white; }
+  .section-title { @apply text-base font-semibold text-navy; }
+}

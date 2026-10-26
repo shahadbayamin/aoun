@@ -1,0 +1,724 @@
+// Taree (طارئ) — data model
+//
+// The schema is split into two logical domains that live in the same database
+// for the MVP but never read each other's tables directly:
+//
+//   1. Taree platform (central unified record): User, Patient, ImagingStudy, ...
+//   2. Simulated hospital systems (RIS/PACS of each participating hospital):
+//      HospitalPatientIndex, SourceStudy, SourceFile.
+//
+// Data moves from (2) to (1) ONLY through the signed integration API
+// (POST /api/integrations/imaging-studies) and the hospital's protected PACS
+// file endpoint. See src/lib/sync and src/lib/integration.
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client" // Rust-free client: wasm query compiler + pg driver adapter
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum Role {
+  PATIENT
+  RADIOLOGIST
+  DOCTOR
+  ADMIN
+}
+
+enum Portal {
+  PATIENT
+  RADIOLOGY
+  ER
+  ADMIN
+}
+
+enum IdType {
+  NATIONAL_ID
+  IQAMA
+  HOSPITAL_MRN
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum InfoSource {
+  SELF_REPORTED
+  PROVIDER_VERIFIED
+  HOSPITAL_RECORD
+}
+
+enum Severity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+enum HospitalType {
+  PUBLIC
+  PRIVATE
+}
+
+enum AffiliationStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+enum Modality {
+  XRAY
+  MRI
+  CT
+  ULTRASOUND
+  OTHER
+}
+
+enum FileKind {
+  IMAGE
+  REPORT
+}
+
+enum FileFormat {
+  DICOM
+  JPEG
+  PNG
+  PDF
+  VIDEO
+}
+
+enum SourceStudyStatus {
+  DRAFT
+  APPROVED
+}
+
+enum StudyStatus {
+  AVAILABLE
+  QUARANTINED
+  REJECTED
+}
+
+enum SyncStatus {
+  PENDING
+  SENDING
+  SYNCED
+  FAILED
+  RETRY
+  QUARANTINED
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum ConsentDecision {
+  GRANTED
+  DENIED
+  REVOKED
+}
+
+enum GrantType {
+  CONSENT
+  EMERGENCY
+}
+
+enum ReviewStatus {
+  PENDING_REVIEW
+  REVIEWED_APPROPRIATE
+  REVIEWED_INAPPROPRIATE
+}
+
+enum EncounterType {
+  RADIOLOGY
+  EMERGENCY
+  OUTPATIENT
+  INPATIENT
+}
+
+enum AuditOutcome {
+  SUCCESS
+  DENIED
+  FAILURE
+}
+
+// ───────────────────────── Accounts & sessions ─────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  role         Role
+  email        String?  @unique
+  username     String?  @unique // patients log in with their (hashed) national ID; staff with email
+  passwordHash String
+  displayName  String
+  phone        String?
+  isActive     Boolean  @default(true)
+  locale       String   @default("ar")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  patient       Patient?
+  professional  HealthcareProfessional?
+  sessions      Session[]
+  notifications Notification[]
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portal     Portal
+  hospitalId String? // staff sessions are bound to one hospital affiliation
+  expiresAt  DateTime
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// Development-only identity provider (simulates Nafath/Absher-style identity proofing).
+model DevIdentityRecord {
+  id             String   @id @default(cuid())
+  idType         IdType
+  identifierHash String   @unique
+  maskedId       String
+  fullNameAr     String
+  fullNameEn     String
+  dateOfBirth    DateTime @db.Date
+  sex            Sex
+  phone          String
+}
+
+model OtpChallenge {
+  id             String    @id @default(cuid())
+  identifierHash String
+  phone          String
+  codeHash       String
+  purpose        String
+  expiresAt      DateTime
+  attempts       Int       @default(0)
+  consumedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([identifierHash])
+}
+
+// ───────────────────────────── Patients ─────────────────────────────
+
+model Patient {
+  id                 String    @id @default(cuid())
+  userId             String?   @unique
+  user               User?     @relation(fields: [userId], references: [id])
+  fullNameAr         String
+  fullNameEn         String
+  dateOfBirth        DateTime  @db.Date
+  sex                Sex
+  maskedId           String // e.g. 1•••••4321 — the raw national ID is never stored by Taree
+  identityVerified   Boolean   @default(false)
+  identityVerifiedAt DateTime?
+  identitySource     String? // e.g. "DEV_IDENTITY_PROVIDER"
+  isDemo             Boolean   @default(true)
+  walletTokenHash    String?   @unique // permanent QR in Apple / Google Wallet (hash of the token only)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  identityMappings IdentityMapping[]
+  profile          MedicalProfile?
+  allergies        Allergy[]
+  conditions       ChronicCondition[]
+  medications      Medication[]
+  surgeries        Surgery[]
+  studies          ImagingStudy[]
+  qrSessions       QrSession[]
+  accessRequests   AccessRequest[]
+  consents         PatientConsent[]
+  grants           AccessGrant[]
+  emergencyEvents  EmergencyAccessEvent[]
+  encounters       Encounter[]
+  qrScans          QrScan[]
+}
+
+// Verified identity mappings. Identifiers are stored only as keyed hashes (HMAC-SHA256 + pepper).
+model IdentityMapping {
+  id                 String   @id @default(cuid())
+  patientId          String
+  patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  idType             IdType
+  identifierHash     String
+  scope              String   @default("GLOBAL") // "GLOBAL" or a hospital id for MRNs
+  verified           Boolean  @default(false)
+  verificationMethod String?
+  createdAt          DateTime @default(now())
+
+  @@unique([idType, identifierHash, scope])
+  @@index([patientId])
+}
+
+model MedicalProfile {
+  id                    String     @id @default(cuid())
+  patientId             String     @unique
+  patient               Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  bloodType             String?
+  bloodTypeSource       InfoSource?
+  bloodTypeVerifiedBy   String? // hospital name that verified
+  noKnownAllergies      Boolean    @default(false) // provider-confirmed NKDA; absence of rows != "no allergies"
+  medicalAlerts         String[]
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  emergencyContactRel   String?
+  takesMedications      Boolean? // null = not answered yet
+  updatedAt             DateTime   @updatedAt
+}
+
+model Allergy {
+  id         String     @id @default(cuid())
+  patientId  String
+  patient    Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  substance  String
+  reaction   String?
+  severity   Severity   @default(MODERATE)
+  source     InfoSource
+  hospitalId String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model ChronicCondition {
+  id         String     @id @default(cuid())
+  patientId  String
+  patient    Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name       String
+  icd10      String?
+  sinceYear  Int?
+  source     InfoSource
+  hospitalId String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Medication {
+  id         String     @id @default(cuid())
+  patientId  String
+  patient    Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name       String? // may be unknown to the patient — then the category is given instead
+  category   String? // e.g. "أدوية الضغط"
+  photoKey   String? // optional photo of the medicine (encrypted object storage)
+  photoMime  String?
+  dose       String?
+  frequency  String?
+  highRisk   Boolean    @default(false)
+  active     Boolean    @default(true)
+  source     InfoSource
+  hospitalId String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Surgery {
+  id           String     @id @default(cuid())
+  patientId    String
+  patient      Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name         String
+  year         Int?
+  hospitalName String?
+  source       InfoSource
+  createdAt    DateTime   @default(now())
+}
+
+model Encounter {
+  id          String        @id @default(cuid())
+  patientId   String
+  patient     Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  hospitalId  String
+  hospital    Hospital      @relation(fields: [hospitalId], references: [id])
+  type        EncounterType
+  date        DateTime
+  description String
+  createdAt   DateTime      @default(now())
+
+  @@index([patientId, date])
+}
+
+// ───────────────────────── Hospitals & professionals ─────────────────────────
+
+model Hospital {
+  id              String       @id @default(cuid())
+  code            String       @unique
+  nameAr          String
+  nameEn          String
+  city            String
+  type            HospitalType
+  isActive        Boolean      @default(true)
+  isDemo          Boolean      @default(true)
+  apiSecretEnc    String // AES-GCM encrypted HMAC secret for the integration API
+  apiKeyRotatedAt DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+
+  affiliations ProfessionalAffiliation[]
+  studies      ImagingStudy[]
+  encounters   Encounter[]
+  syncJobs     SyncJob[]
+  syncEvents   SyncEvent[]
+  sourceStudies SourceStudy[]
+  patientIndex HospitalPatientIndex[]
+}
+
+model HealthcareProfessional {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullNameAr        String
+  fullNameEn        String
+  licenseNumber     String    @unique // SCFHS registration (fictional)
+  profession        String // RADIOLOGIST | PHYSICIAN | ADMIN
+  specialty         String?
+  licenseVerified   Boolean   @default(false)
+  licenseVerifiedAt DateTime?
+  createdAt         DateTime  @default(now())
+
+  affiliations    ProfessionalAffiliation[]
+  accessRequests  AccessRequest[]
+  grants          AccessGrant[]
+  emergencyEvents EmergencyAccessEvent[]
+  qrScans         QrScan[]
+}
+
+model ProfessionalAffiliation {
+  id             String                 @id @default(cuid())
+  professionalId String
+  professional   HealthcareProfessional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  hospitalId     String
+  hospital       Hospital               @relation(fields: [hospitalId], references: [id])
+  department     String // RADIOLOGY | EMERGENCY | ...
+  status         AffiliationStatus      @default(PENDING)
+  verifiedAt     DateTime?
+  verifiedBy     String?
+  createdAt      DateTime               @default(now())
+
+  @@unique([professionalId, hospitalId])
+}
+
+// ─────────────── Simulated hospital RIS/PACS (hospital-local data) ───────────────
+
+model HospitalPatientIndex {
+  id           String   @id @default(cuid())
+  hospitalId   String
+  hospital     Hospital @relation(fields: [hospitalId], references: [id])
+  mrn          String
+  idType       IdType
+  nationalIdEnc String // the hospital's own record of the identifier (encrypted at rest)
+  nationalIdHash String // hospital-local lookup hash
+  fullNameAr   String
+  fullNameEn   String
+  dateOfBirth  DateTime @db.Date
+  sex          Sex
+  createdAt    DateTime @default(now())
+
+  studies SourceStudy[]
+
+  @@unique([hospitalId, mrn])
+  @@index([hospitalId, nationalIdHash])
+}
+
+// "Hospital source record": the study as it exists in the hospital's own RIS.
+model SourceStudy {
+  id                String               @id @default(cuid())
+  hospitalId        String
+  hospital          Hospital             @relation(fields: [hospitalId], references: [id])
+  hospitalPatientId String
+  hospitalPatient   HospitalPatientIndex @relation(fields: [hospitalPatientId], references: [id])
+  accessionNumber   String               @unique
+  studyInstanceUid  String               @unique
+  modality          Modality
+  bodyRegion        String
+  examDate          DateTime
+  radiologistName   String
+  radiologistUserId String?
+  reportText        String               @default("")
+  status            SourceStudyStatus    @default(DRAFT)
+  approvedAt        DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  files    SourceFile[]
+  syncJobs SyncJob[]
+}
+
+model SourceFile {
+  id            String      @id @default(cuid())
+  sourceStudyId String
+  sourceStudy   SourceStudy @relation(fields: [sourceStudyId], references: [id], onDelete: Cascade)
+  kind          FileKind
+  format        FileFormat
+  fileName      String
+  mimeType      String
+  sizeBytes     Int
+  sha256        String
+  storageKey    String
+  createdAt     DateTime    @default(now())
+}
+
+// ───────────────────────── Taree unified imaging record ─────────────────────────
+
+model ImagingStudy {
+  id               String      @id @default(cuid())
+  referenceNumber  String      @unique
+  patientId        String? // null while quarantined
+  patient          Patient?    @relation(fields: [patientId], references: [id])
+  sourceHospitalId String
+  sourceHospital   Hospital    @relation(fields: [sourceHospitalId], references: [id])
+  sourceStudyUid   String
+  accessionNumber  String
+  modality         Modality
+  bodyRegion       String
+  examDate         DateTime
+  radiologistName  String
+  status           StudyStatus @default(AVAILABLE)
+  quarantineReason String?
+  matchMethod      String?
+  verifiedSource   Boolean     @default(true)
+  contentHash      String
+  syncedAt         DateTime    @default(now())
+  createdAt        DateTime    @default(now())
+
+  files  ImagingFile[]
+  report RadiologyReport?
+
+  @@unique([sourceHospitalId, sourceStudyUid])
+  @@index([patientId, examDate])
+}
+
+model ImagingFile {
+  id         String       @id @default(cuid())
+  studyId    String
+  study      ImagingStudy @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  kind       FileKind
+  format     FileFormat
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  sha256     String
+  storageKey String
+  createdAt  DateTime     @default(now())
+}
+
+model RadiologyReport {
+  id          String       @id @default(cuid())
+  studyId     String       @unique
+  study       ImagingStudy @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  text        String
+  author      String
+  finalizedAt DateTime
+}
+
+// ───────────────────────────── Synchronization ─────────────────────────────
+
+model SyncJob {
+  id               String      @id @default(cuid())
+  eventId          String      @unique // stable idempotency key sent to Taree
+  sourceStudyId    String
+  sourceStudy      SourceStudy @relation(fields: [sourceStudyId], references: [id], onDelete: Cascade)
+  hospitalId       String
+  hospital         Hospital    @relation(fields: [hospitalId], references: [id])
+  status           SyncStatus  @default(PENDING)
+  attempts         Int         @default(0)
+  maxAttempts      Int         @default(5)
+  nextAttemptAt    DateTime    @default(now())
+  lastError        String?
+  simulateFailures Int         @default(0) // demo: number of artificial transport failures
+  tareeStudyId     String?
+  tareeReference   String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  events SyncEvent[]
+
+  @@index([status, nextAttemptAt])
+}
+
+model SyncEvent {
+  id         String   @id @default(cuid())
+  jobId      String?
+  job        SyncJob? @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  hospitalId String?
+  hospital   Hospital? @relation(fields: [hospitalId], references: [id])
+  type       String
+  message    String
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([jobId, createdAt])
+}
+
+// Idempotency ledger for inbound integration events.
+model IntegrationReceipt {
+  id         String   @id @default(cuid())
+  eventId    String
+  hospitalId String
+  studyId    String?
+  outcome    String
+  receivedAt DateTime @default(now())
+
+  @@unique([hospitalId, eventId])
+}
+
+// ───────────────────────────── QR & access ─────────────────────────────
+
+model QrSession {
+  id        String    @id @default(cuid())
+  patientId String
+  patient   Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  shortCodeHash String? // short code shown under the QR for manual entry (hashed)
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  scans QrScan[]
+
+  @@index([shortCodeHash])
+}
+
+// A successful QR resolution by a professional: short-lived context from which access is requested.
+model QrScan {
+  id             String                 @id @default(cuid())
+  qrSessionId    String
+  qrSession      QrSession              @relation(fields: [qrSessionId], references: [id], onDelete: Cascade)
+  patientId      String
+  patient        Patient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   HealthcareProfessional @relation(fields: [professionalId], references: [id])
+  hospitalId     String
+  expiresAt      DateTime
+  createdAt      DateTime               @default(now())
+}
+
+model AccessRequest {
+  id             String                 @id @default(cuid())
+  patientId      String
+  patient        Patient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   HealthcareProfessional @relation(fields: [professionalId], references: [id])
+  hospitalId     String
+  scanId         String?
+  purpose        String
+  note           String?
+  scopes         String[]
+  status         AccessRequestStatus    @default(PENDING)
+  expiresAt      DateTime
+  respondedAt    DateTime?
+  createdAt      DateTime               @default(now())
+
+  grant AccessGrant?
+}
+
+model PatientConsent {
+  id              String          @id @default(cuid())
+  patientId       String
+  patient         Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  accessRequestId String?
+  professionalId  String?
+  hospitalId      String?
+  decision        ConsentDecision
+  scopes          String[]
+  createdAt       DateTime        @default(now())
+}
+
+model AccessGrant {
+  id               String                 @id @default(cuid())
+  patientId        String
+  patient          Patient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professionalId   String
+  professional     HealthcareProfessional @relation(fields: [professionalId], references: [id])
+  hospitalId       String
+  type             GrantType
+  scopes           String[]
+  accessRequestId  String?                @unique
+  accessRequest    AccessRequest?         @relation(fields: [accessRequestId], references: [id])
+  emergencyEventId String?                @unique
+  emergencyEvent   EmergencyAccessEvent?  @relation(fields: [emergencyEventId], references: [id])
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime               @default(now())
+
+  @@index([professionalId, expiresAt])
+}
+
+model EmergencyAccessEvent {
+  id             String                 @id @default(cuid())
+  patientId      String
+  patient        Patient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   HealthcareProfessional @relation(fields: [professionalId], references: [id])
+  hospitalId     String
+  scanId         String?
+  purposeCode    String
+  justification  String
+  attested       Boolean
+  reviewStatus   ReviewStatus           @default(PENDING_REVIEW)
+  reviewedBy     String?
+  reviewNotes    String?
+  reviewedAt     DateTime?
+  createdAt      DateTime               @default(now())
+
+  grant AccessGrant?
+}
+
+// ───────────────────────────── Audit & notifications ─────────────────────────────
+
+// Append-only, hash-chained audit trail (tamper-evident).
+model AuditLog {
+  id           String       @id @default(cuid())
+  seq          Int          @unique @default(autoincrement())
+  createdAt    DateTime     @default(now())
+  actorUserId  String?
+  actorRole    String?
+  actorLabel   String
+  hospitalId   String?
+  action       String
+  outcome      AuditOutcome
+  patientId    String?
+  resourceType String?
+  resourceId   String?
+  ip           String?
+  userAgent    String?
+  details      Json?
+  prevHash     String
+  hash         String
+
+  @@index([patientId, createdAt])
+  @@index([action, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  titleAr   String
+  titleEn   String
+  bodyAr    String
+  bodyEn    String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}

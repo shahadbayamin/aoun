@@ -1,0 +1,16 @@
+node_modules
+.next
+storage
+.env
+.env.local
+*.tsbuildinfo
+.taree-data
+logs
+_to_delete
+.vercel
+# Wallet certificates / keys stay on the computer, never in git
+wallet/apple/*.p12
+wallet/apple/*.pem
+wallet/apple/*.key
+wallet/apple/*.cer
+wallet/google/*.json

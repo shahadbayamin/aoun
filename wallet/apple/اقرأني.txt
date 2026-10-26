@@ -1,0 +1,4 @@
+ضع هنا ملفات Apple Wallet:
+  pass.p12            (شهادة Pass Type ID من Apple Developer)
+  AppleWWDRCAG4.cer   (شهادة Apple الوسيطة)
+الخطوات كاملة في «طريقة التشغيل.html».

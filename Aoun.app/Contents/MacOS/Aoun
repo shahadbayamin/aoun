@@ -1,0 +1,82 @@
+#!/bin/bash
+# Aoun (عون) one-click launcher for macOS — no Terminal needed.
+APP="$(cd "$(dirname "$0")/../.." && pwd)"
+ROOT="$(dirname "$APP")"
+TITLE="عون Aoun"
+mkdir -p "$ROOT/logs"; LOG="$ROOT/logs/aoun.log"
+exec >>"$LOG" 2>&1
+echo "==== $(date) launching from $ROOT"
+
+say_note() { osascript -e "display notification \"$1\" with title \"$TITLE\"" >/dev/null 2>&1 || true; }
+fail() {
+  osascript -e "display dialog \"$1\" & return & return & \"Log: $LOG\" with title \"$TITLE\" buttons {\"OK\"} default button 1 with icon stop" >/dev/null 2>&1
+  exit 1
+}
+
+case "$APP" in
+  */AppTranslocation/*) fail "انقل مجلد عون بالكامل إلى سطح المكتب أو المستندات ثم افتح التطبيق مرة أخرى. / Move the whole Taree folder to Desktop or Documents, then open the app again." ;;
+esac
+[ -f "$ROOT/package.json" ] || fail "لم يتم العثور على ملفات المشروع بجانب التطبيق. / Project files not found next to the app."
+
+# ---- Node.js (use an installed one ≥ 20, otherwise download a private copy once) ----
+NODE_VER="22.12.0"
+SUPPORT="$HOME/Library/Application Support/Taree"
+node_ok() { [ -x "$1" ] && "$1" -e 'process.exit(Number(process.versions.node.split(".")[0])>=20?0:1)' 2>/dev/null; }
+NODE=""
+for c in "$SUPPORT/node/bin/node" /opt/homebrew/bin/node /usr/local/bin/node $(ls -d "$HOME"/.nvm/versions/node/*/bin/node 2>/dev/null | sort -rV); do
+  if node_ok "$c"; then NODE="$c"; break; fi
+done
+if [ -z "$NODE" ]; then
+  say_note "تنزيل Node.js لأول مرة… / Downloading Node.js (first run)…"
+  ARCH="$(uname -m)"; [ "$ARCH" = "arm64" ] || ARCH="x64"
+  mkdir -p "$SUPPORT" && cd "$SUPPORT" || fail "Cannot create $SUPPORT"
+  curl -fsSL "https://nodejs.org/dist/v$NODE_VER/node-v$NODE_VER-darwin-$ARCH.tar.gz" -o node.tgz || fail "تعذّر تنزيل Node.js — تحقق من الاتصال بالإنترنت. / Could not download Node.js — check your internet connection."
+  rm -rf node && mkdir node && tar -xzf node.tgz -C node --strip-components 1 && rm node.tgz || fail "Node.js extraction failed"
+  NODE="$SUPPORT/node/bin/node"
+fi
+export PATH="$(dirname "$NODE"):$PATH"
+echo "node: $NODE ($("$NODE" -v))"
+cd "$ROOT" || fail "Cannot open $ROOT"
+
+# ---- Dependencies (first run, or after an update) ----
+if [ ! -f node_modules/.taree-installed ] || [ package-lock.json -nt node_modules/.taree-installed ]; then
+  osascript -e "display dialog \"الإعداد الأول قد يستغرق بضع دقائق. سيفتح عون في المتصفح تلقائياً عند الانتهاء.\" & return & return & \"First-time setup can take a few minutes. Taree will open in your browser automatically when ready.\" with title \"$TITLE\" buttons {\"OK\"} default button 1 giving up after 15" >/dev/null 2>&1 &
+  npm ci --no-audit --no-fund || fail "تعذّر تثبيت المكونات — تحقق من الإنترنت. / Installing components failed — check your internet connection."
+  "$NODE" node_modules/prisma/build/index.js generate || fail "Prisma generate failed"
+  touch node_modules/.taree-installed
+fi
+
+# ---- If an older VERSION of Aoun is still running from this folder, stop it so the update takes effect ----
+PIDF="$ROOT/.taree-data/taree.pid"
+if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
+  if [ "$(cat "$ROOT/.taree-data/running-build" 2>/dev/null)" != "$(cat "$ROOT/.next/BUILD_ID" 2>/dev/null)" ]; then
+    echo "stopping previous version (pid $(cat "$PIDF"))"
+    kill -TERM "$(cat "$PIDF")" 2>/dev/null
+    for i in $(seq 1 30); do kill -0 "$(cat "$PIDF" 2>/dev/null)" 2>/dev/null || break; sleep 0.5; done
+    rm -f "$PIDF"
+  fi
+fi
+
+# ---- If an older copy of Aoun is still running (e.g. from a folder that was moved/deleted), stop it first ----
+PIDF="$ROOT/.taree-data/taree.pid"
+if ! { [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; }; then
+  for port in 3000 54329; do
+    for p in $(lsof -ti tcp:$port -sTCP:LISTEN 2>/dev/null); do echo "stopping old process $p on port $port"; kill "$p" 2>/dev/null; done
+  done
+  sleep 2
+fi
+
+# ---- Start (database + website) in the background until "Stop Aoun". ----
+# The app itself quits once the site is up, so opening Aoun again later never gets refused by macOS.
+nohup "$NODE" scripts/launcher.mjs </dev/null >>"$LOG" 2>&1 &
+LPID=$!
+for i in $(seq 1 900); do
+  if ! kill -0 "$LPID" 2>/dev/null; then
+    wait "$LPID" 2>/dev/null; RC=$?
+    [ "$RC" = "0" ] && exit 0
+    fail "تعذّر تشغيل عون. / Aoun could not start."
+  fi
+  curl -s -o /dev/null --max-time 2 http://localhost:3000/ && exit 0
+  sleep 1
+done
+exit 0

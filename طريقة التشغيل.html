@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>عون — طريقة التشغيل</title>
+<style>
+  :root { --teal:#087F8C; --navy:#0F2A43; --muted:#5B6F85; --bg:#F7FAFC; --line:#E2E8F0; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--navy); font-family: -apple-system, "Segoe UI", Tahoma, "IBM Plex Sans Arabic", sans-serif; line-height:1.8; }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display:flex; align-items:center; gap:14px; margin-bottom: 8px; }
+  .logo { width:52px; height:52px; border-radius:14px; background:var(--teal); display:grid; place-items:center; }
+  h1 { margin:0; font-size: 30px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  section { background:#fff; border:1px solid var(--line); border-radius:18px; padding: 20px 22px; margin: 16px 0; }
+  h3 { margin: 16px 0 4px; font-size: 17px; }
+  h2 { margin: 0 0 10px; font-size: 21px; display:flex; align-items:center; gap:10px; }
+  .tag { font-size: 12px; font-weight:700; padding: 2px 10px; border-radius: 99px; background:#E8F5F6; color: var(--teal); }
+  ol, ul { margin: 6px 0; padding-inline-start: 22px; }
+  li { margin: 6px 0; }
+  b { color: #04434A; }
+  code { direction:ltr; unicode-bidi: isolate; display:inline-block; background:#F1F5F9; border:1px solid var(--line); border-radius:6px; padding: 0 6px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+  table { width:100%; border-collapse: collapse; font-size: 15px; }
+  td, th { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight:600; font-size: 13px; }
+  .note { background:#FFF8E6; border:1px solid #F5DFA3; border-radius:12px; padding: 10px 14px; margin-top: 10px; font-size: 15px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo"><svg width="34" height="34" viewBox="0 0 64 64"><path d="M10 34h11l5-12 8 22 6-14 3 4h11" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h1>عون — طريقة التشغيل</h1>
+  </header>
+  <p class="sub">أشعتك الطبية معك أينما كنت. يعمل الموقع على جهازك، ويفتح في المتصفح على العنوان <code>http://localhost:3000</code></p>
+
+  <section>
+    <h2>🍎 جهاز ماك <span class="tag">Mac</span></h2>
+    <ol>
+      <li>ضع مجلد <b>aoun</b> في مكان ثابت مثل <b>سطح المكتب</b> (وليس داخل «التنزيلات»).</li>
+      <li>اضغط مرتين على تطبيق <b>Aoun</b> (الأيقونة الخضراء) داخل المجلد.</li>
+      <li><b>أول مرة فقط:</b> يجهّز نفسه تلقائياً (يحتاج إنترنت، تقريباً دقيقتين). المرات التالية تفتح خلال ثوانٍ.</li>
+      <li>يفتح المتصفح وحده على الموقع.</li>
+      <li>للإيقاف: اضغط مرتين على <b>Stop Aoun</b> (الأيقونة الحمراء).</li>
+    </ol>
+    <div class="note">إذا ظهرت رسالة «لم يُفتح Aoun» أو «تعذّر التحقق من المطوّر»: اضغط <b>تم</b>، ثم افتح <b>إعدادات النظام ← الخصوصية والأمن</b>، وانزل لأسفل واضغط <b>«فتح على أي حال»</b> بجانب Aoun، ثم افتح التطبيق مرة أخرى واختر <b>فتح</b>. (مرة واحدة فقط)</div>
+  </section>
+
+  <section>
+    <h2>🪟 جهاز ويندوز <span class="tag">Windows 10 / 11</span></h2>
+    <ol>
+      <li>فك ضغط ملف <b>aoun.zip</b> (زر الفأرة الأيمن ← <b>Extract All / استخراج الكل</b>) وضع مجلد <b>aoun</b> على سطح المكتب.</li>
+      <li>اضغط مرتين على <b>Start Aoun (Windows)</b>.</li>
+      <li>إذا ظهرت شاشة زرقاء «Windows protected your PC»: اضغط <b>More info</b> ثم <b>Run anyway</b>.</li>
+      <li>إذا سأل جدار الحماية (Windows Firewall) عن <b>Node.js</b>: اختر <b>Allow / السماح</b> (ضروري لفتح البطاقة من الجوال).</li>
+      <li><b>أول مرة فقط:</b> يحمّل ما يحتاجه تلقائياً (يحتاج إنترنت، عدة دقائق). ثم يفتح المتصفح على الموقع.</li>
+      <li><b>اترك النافذة السوداء مفتوحة</b> طوال العرض. للإيقاف: أغلقها، أو اضغط مرتين على <b>Stop Aoun (Windows)</b>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>🔑 بيانات الدخول</h2>
+    <table>
+      <tr><th>الحساب</th><th>الدخول</th></tr>
+      <tr><td><b>المريضة: سارة القحطاني</b></td><td>الهوية <code>1098765432</code> · الجوال <code>0500000001</code> · رمز التحقق <code>123456</code></td></tr>
+      <tr><td><b>مريض آخر: خالد</b></td><td>الهوية <code>1087654321</code> · الجوال <code>0500000002</code> · الرمز <code>123456</code></td></tr>
+      <tr><td><b>مستشفى الأمل — الأشعة</b></td><td><code>huda@alamal.med</code> · كلمة المرور <code>Aoun@2026</code></td></tr>
+      <tr><td><b>مستشفى الشفاء — الطوارئ</b></td><td><code>fahad@alshifa.med</code> · كلمة المرور <code>Aoun@2026</code></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>🎬 خطوات العرض</h2>
+    <ol>
+      <li><b>المستشفى (أ):</b> «دخول المستشفى» ← مستشفى الأمل ← أدخل الهوية <code>1098765432</code> ← النوع «رنين مغناطيسي» ← ارفع الملف <code>demo-assets/demo-mri-cine.mp4</code> ← اكتب تقريراً قصيراً ← <b>حفظ وتأكيد</b>. انتظر رسالة النجاح.</li>
+      <li><b>المريضة:</b> «دخول المريض» (من الجوال أو نافذة أخرى) ← تظهر البطاقة الطبية ورمز QR ورمز قصير من 6 أحرف.</li>
+      <li><b>المستشفى (ب):</b> «دخول المستشفى» ← مستشفى الشفاء ← امسح رمز QR بالكاميرا، أو اكتب الرمز القصير، أو «محاكاة مسح QR».</li>
+      <li><b>النتيجة:</b> يفتح سجل المريضة مباشرة، اضغط على الأشعة لتظهر نفس الملف المرفوع مع التقرير واسم المستشفى.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>📱 فتح البطاقة من الجوال</h2>
+    <ul>
+      <li>يجب أن يكون الجوال والكمبيوتر على <b>نفس شبكة الواي فاي</b>.</li>
+      <li>صوّر رمز QR بكاميرا الجوال ← تفتح بطاقة المريض مباشرة.</li>
+      <li>الطبيب المسجّل دخوله في المستشفى (ب) يرى أيضاً الأشعة والتقارير.</li>
+      <li>الرمز صالح 5 دقائق ولمرة واحدة؛ اضغط «رمز جديد» عند الحاجة.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>🗄️ قاعدة البيانات (عرض وتعديل)</h2>
+    <ol>
+      <li>شغّل عون أولاً.</li>
+      <li>ماك: اضغط مرتين على <b>Aoun Database</b>. ويندوز: اضغط مرتين على <b>Aoun Database (Windows)</b>. أو افتح في المتصفح <code>http://localhost:3001</code></li>
+      <li>اختر الجدول من القائمة (المرضى، الملف الطبي وجهة الاتصال، الأمراض المزمنة، الحساسية، الأشعة…).</li>
+      <li>اضغط على أي خانة لتعديلها ثم <b>حفظ</b>، أو <b>+ إضافة سجل</b>، أو 🗑 للحذف.</li>
+      <li>حدّث صفحة الموقع لترى التغيير.</li>
+    </ol>
+    <div class="note">تفتح قاعدة البيانات من هذا الكمبيوتر فقط. الحقول الرمادية محمية (مثل كلمات المرور المشفّرة) ولا يمكن تعديلها.</div>
+  </section>
+
+  <section>
+    <h2>🗄️ قاعدة البيانات</h2>
+    <ul>
+      <li>ماك: اضغط مرتين على <b>Aoun Database</b>. ويندوز: <b>Aoun Database (Windows)</b> (وطارئ يعمل).</li>
+      <li>تفتح صفحة <code>http://localhost:5555</code> فيها <b>المرضى</b> و<b>الأطباء</b> (عربي / English من أعلى القائمة).</li>
+      <li>اضغط على أي مريض أو طبيب لعرض كل معلوماته وحسابه، واضغط على أي معلومة لتعديلها. يمكنك إضافة مريض أو طبيب جديد، وتغيير كلمة مرور الطبيب.</li>
+      <li>تعمل على هذا الجهاز فقط، ولا يمكن فتحها من الجوال أو أي جهاز آخر.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📱 إرسال رمز الدخول برسالة نصية (SMS)</h2>
+    <p>بدون إعداد يستخدم الموقع الرمز الثابت <code>123456</code>. عند ربط خدمة رسائل يُرسل رمز عشوائي جديد إلى جوال المريض في كل مرة (صالح 5 دقائق)، ولا يعود <code>123456</code> يعمل.</p>
+    <ol>
+      <li>سجّل في <b>twilio.com</b> (تجربة مجانية).</li>
+      <li>من الصفحة الرئيسية للحساب انسخ <b>Account SID</b> و <b>Auth Token</b>.</li>
+      <li>خذ رقم إرسال من Twilio: <b>Phone Numbers ← Buy a number</b> (مجاني في التجربة).</li>
+      <li>في الحساب التجريبي: أضف رقم جوالك في <b>Verified Caller IDs</b> (التجربة ترسل فقط للأرقام الموثّقة).</li>
+      <li>غيّر «جوال الدخول» للمريض إلى رقم جوالك الحقيقي من <b>Aoun Database</b>.</li>
+      <li>افتح ملف <code>.env</code> داخل مجلد aoun (ملف مخفي — اضغط <code>Cmd + Shift + .</code> في فايندر لإظهاره) واملأ الأسطر:
+        <div class="note" dir="ltr" style="text-align:left">SMS_PROVIDER="twilio"<br>TWILIO_ACCOUNT_SID="AC..."<br>TWILIO_AUTH_TOKEN="..."<br>TWILIO_FROM="+1..."</div>
+      </li>
+      <li>أوقف عون ثم شغّله مرة أخرى.</li>
+    </ol>
+    <div class="note">خدمة سعودية بديلة: <b>Taqnyat</b> — <code>SMS_PROVIDER="taqnyat"</code> و <code>TAQNYAT_TOKEN</code> و <code>TAQNYAT_SENDER</code> (اسم مرسل معتمد).</div>
+  </section>
+
+  <section>
+    <h2>💳 بطاقة المريض في المحفظة (Apple Wallet / Google Wallet)</h2>
+    <p>في صفحة المريض تحت رمز QR يوجد زرّان: <b>إضافة إلى Apple Wallet</b> و <b>إضافة إلى Google Wallet</b>. تنحفظ البطاقة مع باركود ثابت في محفظة الجوال، فلا يحتاج المريض فتح الموقع. الطبيب يمسح الباركود بكاميرا جواله، ثم يسجّل دخوله، فيفتح ملف المريض مباشرة. لا تظهر أي معلومات عن المريض قبل دخول الطبيب.</p>
+    <div class="note">الزرّان يعملان بعد إضافة بيانات Apple و Google مرة واحدة (الخطوات تحت). بدونها تظهر رسالة «غير مفعّل بعد».</div>
+
+    <h3>🍎 Apple Wallet (آيفون)</h3>
+    <ol>
+      <li>اشترك في <b>Apple Developer Program</b> على developer.apple.com (99$ بالسنة). Apple لا تقبل بطاقات المحفظة بدونه.</li>
+      <li>في <b>Certificates, Identifiers &amp; Profiles ← Identifiers ← +</b> اختر <b>Pass Type IDs</b> وسمّه مثلاً <code>pass.com.aoun.card</code>.</li>
+      <li>افتح <b>Keychain Access ← Certificate Assistant ← Request a Certificate From a Certificate Authority</b> واحفظ الطلب على الجهاز.</li>
+      <li>ارجع لـ Pass Type ID ← <b>Create Certificate</b> ← ارفع الطلب ← نزّل الشهادة واضغط عليها مرتين لتدخل Keychain.</li>
+      <li>في Keychain: زر الفأرة الأيمن على الشهادة ← <b>Export</b> بصيغة <b>.p12</b> بكلمة مرور ← احفظها باسم <code>pass.p12</code> داخل مجلد <code>aoun/wallet/apple</code>.</li>
+      <li>نزّل شهادة Apple الوسيطة <code>AppleWWDRCAG4.cer</code> من apple.com/certificateauthority وضعها في نفس المجلد.</li>
+      <li>في ملف <code>.env</code> املأ:
+        <div class="note" dir="ltr" style="text-align:left">APPLE_PASS_TYPE_ID="pass.com.aoun.card"<br>APPLE_TEAM_ID="XXXXXXXXXX"  (Membership ← Team ID)<br>APPLE_PASS_P12_PASSWORD="كلمة مرور ملف p12"</div>
+      </li>
+    </ol>
+
+    <h3>🤖 Google Wallet (أندرويد) — مجاني</h3>
+    <ol>
+      <li>افتح <b>pay.google.com/business/console</b> وأنشئ حساب <b>Google Wallet API</b>، وانسخ <b>Issuer ID</b>.</li>
+      <li>في <b>console.cloud.google.com</b>: أنشئ مشروعاً ← فعّل <b>Google Wallet API</b> ← أنشئ <b>Service account</b> ← <b>Keys ← Add key ← JSON</b>.</li>
+      <li>ارجع لـ Wallet Console ← <b>Users</b> وأضف بريد الـ Service account بصلاحية <b>Developer</b>.</li>
+      <li>حتى توافق Google على الحساب: أضف بريد Gmail الذي على جوالك كحساب تجربة (Test account) في Wallet Console.</li>
+      <li>ضع ملف JSON باسم <code>service-account.json</code> داخل <code>aoun/wallet/google</code>، وفي <code>.env</code>:
+        <div class="note" dir="ltr" style="text-align:left">GOOGLE_WALLET_ISSUER_ID="3388000000000000000"</div>
+      </li>
+    </ol>
+    <p>بعدها أوقف عون وشغّله مرة أخرى.</p>
+    <div class="note">الباركود في المحفظة رابط لعنوان هذا الكمبيوتر على الواي فاي، لذلك جوال الطبيب يكون على نفس الشبكة. إذا تغيّر عنوان الكمبيوتر، يضيف المريض البطاقة من جديد (أو ثبّت العنوان في <code>.env</code> بـ <code>PUBLIC_URL</code>). عند تعديل معلومات المريض، يضيف البطاقة مرة أخرى لتتحدّث.</div>
+  </section>
+
+  <section>
+    <h2>🛠️ إذا واجهت مشكلة</h2>
+    <ul>
+      <li>تأكد من الاتصال بالإنترنت في أول تشغيل.</li>
+      <li>أوقف عون ثم شغّله مرة أخرى. إذا استمرت المشكلة أعد تشغيل الجهاز.</li>
+      <li>ملف السجل للمساعدة: <code>aoun/logs/aoun.log</code> (ماك).</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>
