@@ -1,6 +1,6 @@
 # عون · Aoun — Unified Medical Imaging & Emergency Information Platform
 
-Arabic-first, responsive **web application** (no native app) that shows the core Aoun workflow working end to end on a real database:
+Arabic and English, responsive **web application** (no native app) that shows the core Aoun workflow working end to end on a real database:
 
 > **Hospital A** radiologist clicks **«اعتماد وحفظ الأشعة» (Approve & Finalize)** → the study is pushed **automatically** to Aoun over a signed integration API → Aoun authenticates the hospital, matches the patient via a verified identity mapping, pulls the file from the hospital PACS, verifies it (SHA-256) and stores it encrypted → it appears in the **patient's unified record** → **Hospital B**'s ER doctor scans the patient's **emergency QR card**, gets authorization (patient consent, or audited break-glass) and opens the **exact same study and report**.
 
