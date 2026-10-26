@@ -1,7 +1,16 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   const { loadAppSecrets } = await import("./lib/app-secrets");
-  await loadAppSecrets();
+  // Never let a busy database stop the server from starting: retry a few times, then carry on.
+  for (let i = 0; i < 4; i++) {
+    try {
+      await loadAppSecrets();
+      break;
+    } catch (e) {
+      console.error("[aoun] loading app secrets failed, retrying", (e as Error).message);
+      await new Promise((r) => setTimeout(r, 500 * (i + 1)));
+    }
+  }
   // On serverless hosting (Vercel) there is no long-running process: sync jobs run right after the request instead.
   if (process.env.DISABLE_SYNC_WORKER !== "1" && !process.env.VERCEL) {
     const { startSyncWorker } = await import("./lib/sync/engine");
