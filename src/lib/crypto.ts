@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { env } from "./env";
+import { onlyDigits } from "./digits";
 
 export const sha256 = (data: string | Buffer) => crypto.createHash("sha256").update(data).digest("hex");
 
@@ -16,7 +17,7 @@ export function safeEqual(a: string, b: string) {
 }
 
 /** Normalize a national ID / Iqama: digits only. */
-export const normalizeId = (id: string) => id.replace(/\D/g, "");
+export const normalizeId = (id: string) => onlyDigits(id);
 
 /** Keyed hash for identifiers. Taree never stores raw national IDs. */
 export function hashIdentifier(idType: string, value: string, scope = "GLOBAL") {

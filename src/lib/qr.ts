@@ -4,10 +4,11 @@ import { audit, type AuditActor } from "./audit";
 import { ApiError } from "./errors";
 import crypto from "node:crypto";
 import { publicBaseUrl } from "./public-url";
+import { latinDigits } from "./digits";
 
 // Short code for manual entry: 6 characters, no look-alike letters (0/O, 1/I/L).
 const SHORT_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-export const normalizeShortCode = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+export const normalizeShortCode = (s: string) => latinDigits(s).toUpperCase().replace(/[^A-Z0-9]/g, "");
 function newShortCode() {
   return Array.from({ length: 6 }, () => SHORT_ALPHABET[crypto.randomInt(SHORT_ALPHABET.length)]).join("");
 }

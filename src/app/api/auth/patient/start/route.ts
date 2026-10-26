@@ -8,14 +8,15 @@ import { rateLimit } from "@/lib/rate-limit";
 import { requestMeta } from "@/lib/request-meta";
 import { ApiError } from "@/lib/errors";
 import { sendSms, smsProvider } from "@/lib/sms";
+import { onlyDigits } from "@/lib/digits";
 
 /**
  * Patient sign-in step 1: National ID / Iqama + mobile → one-time code.
  * Development identity provider (simulated). In demo mode the code is returned so it can be shown on screen.
  */
 const Body = z.object({
-  nationalId: z.string().regex(/^[12]\d{9}$/, "رقم الهوية / الإقامة يجب أن يكون 10 أرقام"),
-  phone: z.string().regex(/^05\d{8}$/, "رقم الجوال بصيغة 05XXXXXXXX"),
+  nationalId: z.string().transform(onlyDigits).pipe(z.string().regex(/^[12]\d{9}$/, "رقم الهوية / الإقامة يجب أن يكون 10 أرقام")),
+  phone: z.string().transform(onlyDigits).pipe(z.string().regex(/^05\d{8}$/, "رقم الجوال بصيغة 05XXXXXXXX")),
 });
 
 export const POST = route(async (req) => {

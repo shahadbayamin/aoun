@@ -8,6 +8,7 @@ import { env } from "@/lib/env";
 import { audit } from "@/lib/audit";
 import { ApiError, badRequest } from "@/lib/errors";
 import { MAX_VIDEO_BYTES } from "@/lib/files";
+import { onlyDigits } from "@/lib/digits";
 
 const MAX_FILES = 30;
 const MAX_TOTAL_BYTES = 400 * 1024 * 1024;
@@ -25,7 +26,7 @@ export const POST = route(async (req) => {
   const { s, ctx, actor } = await radiologyCtx("RIS_SAVE_CONFIRM");
   if (Number(req.headers.get("content-length") || 0) > MAX_TOTAL_BYTES + 1_000_000) throw badRequest("حجم الملفات كبير جداً / Files too large");
   const form = await req.formData();
-  let nationalId = String(form.get("nationalId") ?? "").replace(/\D/g, "");
+  let nationalId = onlyDigits(String(form.get("nationalId") ?? ""));
   const grantId = String(form.get("grantId") ?? "");
   if (grantId) {
     // Added from a scanned card: the patient comes from the doctor's active grant — no ID typing.

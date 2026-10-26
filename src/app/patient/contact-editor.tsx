@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, X } from "lucide-react";
 import { api, Spinner } from "@/components/client";
 import { useT } from "@/components/lang";
+import { onlyDigits } from "@/lib/digits";
 
 /** The patient edits their emergency contact (name, mobile number, relationship). */
 export function ContactEditor({ name, phone, relation }: { name: string; phone: string; relation: string }) {
@@ -35,7 +36,7 @@ export function ContactEditor({ name, phone, relation }: { name: string; phone: 
             </div>
             <form className="space-y-4 px-5 py-5" onSubmit={(e) => { e.preventDefault(); save(); }}>
               <div><label className="label" htmlFor="cn">{t("الاسم", "Name")}</label><input id="cn" className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required /></div>
-              <div><label className="label" htmlFor="cp">{t("رقم الجوال", "Mobile number")}</label><input id="cp" className="input ltr-nums" inputMode="tel" maxLength={10} placeholder="05XXXXXXXX" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value.replace(/\D/g, "") })} required /></div>
+              <div><label className="label" htmlFor="cp">{t("رقم الجوال", "Mobile number")}</label><input id="cp" className="input ltr-nums" inputMode="tel" maxLength={10} placeholder="05XXXXXXXX" value={f.phone} onChange={(e) => setF({ ...f, phone: onlyDigits(e.target.value) })} required /></div>
               <div><label className="label" htmlFor="cr">{t("صلة القرابة", "Relationship")}</label><input id="cr" className="input" placeholder={t("مثال: الأب، الزوج، الأخت", "e.g. father, husband, sister")} value={f.relation} onChange={(e) => setF({ ...f, relation: e.target.value })} /></div>
               {err && <div className="rounded-xl bg-emergency-50 px-3 py-2 text-sm text-emergency-700">{err}</div>}
               <div className="flex gap-3"><button className="btn-primary flex-1" disabled={busy} data-testid="save-contact">{busy && <Spinner />}{t("حفظ", "Save")}</button><button type="button" className="btn-secondary" onClick={() => setOpen(false)}>{t("إلغاء", "Cancel")}</button></div>

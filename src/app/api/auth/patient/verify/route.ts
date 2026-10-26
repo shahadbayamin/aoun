@@ -7,9 +7,10 @@ import { hashPassword } from "@/lib/auth";
 import { startUserSession } from "@/lib/login";
 import { audit } from "@/lib/audit";
 import { ApiError } from "@/lib/errors";
+import { onlyDigits } from "@/lib/digits";
 
 /** Patient sign-in step 2: verify the code. First-time patients get their account created automatically. */
-const Body = z.object({ challengeId: z.string().min(1), code: z.string().regex(/^\d{6}$/, "الرمز 6 أرقام") });
+const Body = z.object({ challengeId: z.string().min(1), code: z.string().transform(onlyDigits).pipe(z.string().regex(/^\d{6}$/, "الرمز 6 أرقام")) });
 
 export const POST = route(async (req) => {
   const { challengeId, code } = await parseJson(req, Body);

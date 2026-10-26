@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Send, LogIn } from "lucide-react";
 import { useT } from "@/components/lang";
 import { api, Spinner } from "@/components/client";
+import { onlyDigits } from "@/lib/digits";
 
 
 export function LoginForm() {
@@ -44,16 +45,16 @@ export function LoginForm() {
     <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); if (ch) verify(); else send(); }}>
       <div>
         <label className="label" htmlFor="nid">{t("رقم الهوية / الإقامة", "National ID / Iqama")}</label>
-        <input id="nid" className="input ltr-nums" inputMode="numeric" maxLength={10} value={nid} onChange={(e) => { setNid(e.target.value.replace(/\D/g, "")); setCh(null); }} placeholder="1XXXXXXXXX" required />
+        <input id="nid" className="input ltr-nums" inputMode="numeric" maxLength={10} value={nid} onChange={(e) => { setNid(onlyDigits(e.target.value)); setCh(null); }} placeholder="1XXXXXXXXX" required />
       </div>
       <div>
         <label className="label" htmlFor="ph">{t("رقم الجوال", "Mobile number")}</label>
-        <input id="ph" className="input ltr-nums" inputMode="tel" maxLength={10} value={phone} onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "")); setCh(null); }} placeholder="05XXXXXXXX" required />
+        <input id="ph" className="input ltr-nums" inputMode="tel" maxLength={10} value={phone} onChange={(e) => { setPhone(onlyDigits(e.target.value)); setCh(null); }} placeholder="05XXXXXXXX" required />
       </div>
       <div>
         <label className="label" htmlFor="code">{t("رمز التحقق", "Verification code")}</label>
         <div className="flex gap-2">
-          <input id="code" className="input ltr-nums text-center tracking-[0.4em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="••••••" disabled={!ch} />
+          <input id="code" className="input ltr-nums text-center tracking-[0.4em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(onlyDigits(e.target.value))} placeholder="••••••" disabled={!ch} />
           <button type="button" className="btn-secondary shrink-0" onClick={send} disabled={busy || wait > 0 || nid.length !== 10 || phone.length !== 10}>
             {busy && !ch ? <Spinner /> : <Send className="h-4 w-4" />}{ch ? (wait > 0 ? `${t("إعادة الإرسال", "Resend")} (${wait})` : t("إعادة الإرسال", "Resend")) : t("إرسال الرمز", "Send code")}
           </button>

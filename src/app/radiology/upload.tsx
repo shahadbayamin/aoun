@@ -5,6 +5,7 @@ import { clsx } from "clsx";
 import { CheckCircle2, CloudUpload, FileVideo, Image as ImageIcon, Plus, RotateCcw, ScanLine, ShieldAlert, UserCheck, X, XCircle } from "lucide-react";
 import { api, Spinner } from "@/components/client";
 import { useT } from "@/components/lang";
+import { onlyDigits } from "@/lib/digits";
 
 type Job = { status: string; attempts: number; maxAttempts: number; lastError: string | null; tareeReference: string | null; completedAt: string | null };
 type Phase = "idle" | "uploading" | "syncing" | "done" | "error";
@@ -105,7 +106,7 @@ export function UploadForm({ grantId, patientName }: { grantId?: string; patient
         ) : (
         <div>
           <label className="label" htmlFor="nid">1. {t("رقم الهوية / الإقامة للمريض", "Patient National ID / Iqama")}</label>
-          <input id="nid" className="input ltr-nums text-lg" inputMode="numeric" maxLength={10} value={nid} disabled={locked} onChange={(e) => setNid(e.target.value.replace(/\D/g, ""))} placeholder="1098765432" data-testid="nid" />
+          <input id="nid" className="input ltr-nums text-lg" inputMode="numeric" maxLength={10} value={nid} disabled={locked} onChange={(e) => setNid(onlyDigits(e.target.value))} placeholder="1098765432" data-testid="nid" />
           {who?.found && <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700"><UserCheck className="h-4 w-4" />{lang === "ar" ? who.fullNameAr : who.fullNameEn}</div>}
           {who && !who.found && <div className="mt-2 text-sm text-emergency">{t("المريض غير مسجل في هذا المستشفى", "Patient not registered at this hospital")}</div>}
         </div>
