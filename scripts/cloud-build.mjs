@@ -74,4 +74,14 @@ if (!hospitals || have !== want) {
 
 // 4) build
 run(process.execPath, [path.join(ROOT, "node_modules/prisma/build/index.js"), "generate"]);
+// Prisma marks schema.prisma for serverless file tracing but not its query compiler (.wasm): add the same marker,
+// otherwise Vercel functions fail with "ENOENT … query_compiler_bg.wasm".
+{
+  const idx = path.join(ROOT, "node_modules/.prisma/client/index.js");
+  const mark = 'path.join(process.cwd(), "node_modules/.prisma/client/query_compiler_bg.wasm")';
+  if (fs.existsSync(idx) && !fs.readFileSync(idx, "utf8").includes(mark)) {
+    fs.appendFileSync(idx, `\npath.join(__dirname, "query_compiler_bg.wasm");\n${mark}\n`);
+    log("marked the Prisma query compiler for bundling");
+  }
+}
 run(process.execPath, [path.join(ROOT, "node_modules/next/dist/bin/next"), "build"]);

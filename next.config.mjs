@@ -10,11 +10,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
-  // Prisma's query compiler (.wasm) is loaded at runtime, so serverless bundles (Vercel) must include it explicitly.
-  outputFileTracingIncludes: {
-    "/*": ["./node_modules/.prisma/client/**/*"],
-    "/**/*": ["./node_modules/.prisma/client/**/*"],
-  },
+
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
