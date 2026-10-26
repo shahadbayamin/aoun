@@ -40,6 +40,8 @@ A patient's imaging (X-ray, CT, MRI) stays inside the hospital that produced it.
 
 ## Live demo
 
+**🌐 https://aoun-eight.vercel.app** — open it on any phone or computer.
+
 | Role | Sign-in |
 |---|---|
 | Patient | National ID `1098765432` · Mobile `0500000001` · Code `123456` |
