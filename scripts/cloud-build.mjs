@@ -20,7 +20,8 @@ const run = (cmd, args) => {
 
 // Vercel databases (Neon, Prisma Postgres) expose several URLs; use a plain postgres:// one.
 const plain = (u) => !!u && /^postgres(ql)?:\/\//.test(u);
-process.env.DATABASE_URL = [process.env.DATABASE_URL, process.env.POSTGRES_URL, process.env.DATABASE_URL_UNPOOLED, process.env.POSTGRES_URL_NON_POOLING].find(plain) || "";
+process.env.DATABASE_URL = [process.env.DATABASE_URL, process.env.POSTGRES_URL, process.env.DATABASE_URL_UNPOOLED, process.env.POSTGRES_URL_NON_POOLING,
+  ...Object.keys(process.env).filter((k) => /(_URL|DATABASE_URL)$/.test(k)).sort().map((k) => process.env[k])].find(plain) || "";
 if (!process.env.DATABASE_URL) {
   console.error("[aoun-build] DATABASE_URL is missing — add a Postgres database (Vercel → Storage → Prisma Postgres or Neon) and redeploy.");
   process.exit(1);

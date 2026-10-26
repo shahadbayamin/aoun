@@ -1,10 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { pickDatabaseUrl } from "./db-url";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function create() {
-  const adapter = new PrismaPg({ connectionString: [process.env.DATABASE_URL, process.env.POSTGRES_URL, process.env.DATABASE_URL_UNPOOLED].find((u) => !!u && /^postgres(ql)?:\/\//.test(u))! });
+  const adapter = new PrismaPg({ connectionString: pickDatabaseUrl()! });
   return new PrismaClient({ adapter });
 }
 
