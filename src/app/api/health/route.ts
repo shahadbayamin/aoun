@@ -12,6 +12,7 @@ export async function GET() {
     const c = new pg.Client({ connectionString: pickDatabaseUrl() });
     await c.connect();
     out.pg = (await c.query(`SELECT count(*)::int AS n FROM "Hospital"`)).rows[0].n;
+    try { out.errors = (await c.query(`SELECT at, path, message FROM "ServerError" ORDER BY id DESC LIMIT 5`)).rows; } catch {}
     await c.end();
   } catch (e) {
     out.pgError = String((e as Error).message).replace(/postgres(ql)?:\/\/\S+/g, "<url>");
