@@ -28,9 +28,13 @@ async function insertRow(db, table, obj) {
 }
 class UserError extends Error {}
 
-export async function startDbViewer({ connectionString, port = 5555, log = console.log }) {
+/**
+ * The request handler on its own, so the same page can also be served online by the website
+ * (/manage, behind an admin sign-in) — see src/app/manage.
+ */
+export async function createDbViewerListener({ connectionString, port = 5555, log = console.log, checkOrigin = true, poolMax = 3 }) {
   const { default: pgLib } = await import("pg");
-  const pool = new pgLib.Pool({ connectionString, max: 3 });
+  const pool = new pgLib.Pool({ connectionString, max: poolMax, idleTimeoutMillis: 10_000 });
 
   async function tables() {
     const { rows } = await pool.query(
@@ -104,7 +108,7 @@ export async function startDbViewer({ connectionString, port = 5555, log = conso
     return s ? JSON.parse(s) : {};
   }
 
-  const server = http.createServer(async (req, res) => {
+  const listener = async (req, res) => {
     const send = (code, obj, type = "application/json; charset=utf-8") => {
       res.writeHead(code, { "content-type": type, "cache-control": "no-store" });
       res.end(type.startsWith("application/json") ? JSON.stringify(obj) : obj);
@@ -114,7 +118,7 @@ export async function startDbViewer({ connectionString, port = 5555, log = conso
       // Only same-origin browser requests may change data.
       if (req.method !== "GET") {
         const origin = req.headers.origin;
-        if (origin && origin !== `http://localhost:${port}` && origin !== `http://127.0.0.1:${port}`) return send(403, { error: "Forbidden" });
+        if (checkOrigin && origin && origin !== `http://localhost:${port}` && origin !== `http://127.0.0.1:${port}`) return send(403, { error: "Forbidden" });
       }
       if (req.method === "GET" && url.pathname === "/") return send(200, PAGE, "text/html; charset=utf-8");
       if (req.method === "GET" && url.pathname === "/api/tables") return send(200, await tables());
@@ -326,8 +330,13 @@ export async function startDbViewer({ connectionString, port = 5555, log = conso
     } catch (e) {
       send(400, { error: String(e?.message || e) });
     }
-  });
+  };
+  return { listener, pool };
+}
 
+export async function startDbViewer({ connectionString, port = 5555, log = console.log }) {
+  const { listener, pool } = await createDbViewerListener({ connectionString, port, log });
+  const server = http.createServer(listener);
   await new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(port, "127.0.0.1", resolve);
@@ -468,8 +477,10 @@ const age = (d) => d ? Math.floor((Date.now() - new Date(d)) / 31557600000) : ""
 const dash = '<span class="muted">—</span>';
 const yesno = (b) => b ? '<span class="pill yes">' + L("نعم", "Yes") + '</span>' : '<span class="pill no">' + L("لا", "No") + '</span>';
 function toast(m) { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 2200); }
+// Served at "/" on this computer, or under "/manage" on the website.
+const BASE = location.pathname.endsWith("/") ? location.pathname.slice(0, -1) : location.pathname;
 async function api(path, payload) {
-  const r = await fetch(path, payload ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) } : undefined);
+  const r = await fetch(BASE + path, payload ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) } : undefined);
   const j = await r.json(); if (!r.ok) throw new Error(msg(j.error || "Error")); return j;
 }
 async function cols(t) { return colsCache[t] ||= await api("/api/columns?t=" + t); }
