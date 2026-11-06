@@ -227,7 +227,7 @@ export async function createDbViewerListener({ connectionString, port = 5555, lo
           `SELECT hp.id, hp."fullNameAr", hp."fullNameEn", hp.profession, hp.specialty, hp."licenseVerified", u.email, u.role, u."isActive",
                   (SELECT string_agg(h."nameAr", '، ') FROM "ProfessionalAffiliation" a JOIN "Hospital" h ON h.id = a."hospitalId" WHERE a."professionalId" = hp.id) AS hospitals,
                   (SELECT string_agg(h."nameEn", ', ') FROM "ProfessionalAffiliation" a JOIN "Hospital" h ON h.id = a."hospitalId" WHERE a."professionalId" = hp.id) AS "hospitalsEn"
-             FROM "HealthcareProfessional" hp JOIN "User" u ON u.id = hp."userId" WHERE u.role IN ('DOCTOR', 'RADIOLOGIST') ORDER BY hp."fullNameAr"`);
+             FROM "HealthcareProfessional" hp JOIN "User" u ON u.id = hp."userId" WHERE u.role IN ('DOCTOR', 'RADIOLOGIST', 'ADMIN') ORDER BY hp."fullNameAr"`);
         return send(200, rows.map(plain));
       }
       if (req.method === "GET" && url.pathname === "/api/staff-one") {
