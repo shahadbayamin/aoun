@@ -43,7 +43,7 @@ export default async function CardStudy({ params }: { params: Promise<{ token: s
         </Card>
         <Card title={t("تقرير الأشعة", "Radiology report")}>
           <p dir="auto" className="whitespace-pre-wrap text-start text-sm leading-relaxed">{st.report?.text || "—"}</p>
-          {st.report && <div className="mt-3 text-xs text-navy-400">{st.report.author} · {fmtDate(st.report.finalizedAt, lang, true)}</div>}
+          {st.report && <div className="mt-3 text-xs text-navy-400">{st.report.author} · {fmtDate(st.report.finalizedAt, lang, true)}{st.report.amendedAt && <span data-testid="report-amended"> · {t("عُدّل", "Edited")} {fmtDate(st.report.amendedAt, lang, true)}</span>}</div>}
         </Card>
       </div>
     </div>

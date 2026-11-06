@@ -259,3 +259,21 @@ export async function ingestStudy(hospital: Hospital, eventId: string, raw: unkn
     throw e;
   }
 }
+
+/**
+ * Apply a corrected report to the study already linked in the patient's Aoun record.
+ * The original author and finalization time are kept; amendedAt records when it was corrected.
+ * Returns null when the study has not reached Aoun yet (the corrected text then travels with the sync).
+ */
+export async function amendLinkedReport(hospitalId: string, studyInstanceUid: string, text: string, author: string) {
+  const study = await prisma.imagingStudy.findUnique({
+    where: { sourceHospitalId_sourceStudyUid: { sourceHospitalId: hospitalId, sourceStudyUid: studyInstanceUid } },
+    include: { report: true },
+  });
+  if (!study) return null;
+  const now = new Date();
+  const report = study.report
+    ? await prisma.radiologyReport.update({ where: { id: study.report.id }, data: { text, amendedAt: now } })
+    : await prisma.radiologyReport.create({ data: { studyId: study.id, text, author, finalizedAt: now } });
+  return { study, report };
+}

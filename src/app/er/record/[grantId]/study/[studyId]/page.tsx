@@ -40,7 +40,7 @@ export default async function Viewer({ params }: { params: Promise<{ grantId: st
           </Card>
           <Card title={t("تقرير الأشعة", "Radiology report")}>
             <p dir="auto" className="whitespace-pre-wrap text-start text-sm leading-relaxed" data-testid="report">{st.report?.text || t("التقرير مرفق كملف PDF", "Report attached as PDF")}</p>
-            {st.report && <div className="mt-3 text-xs text-navy-400">{st.report.author} · {fmtDate(st.report.finalizedAt, lang, true)}</div>}
+            {st.report && <div className="mt-3 text-xs text-navy-400">{st.report.author} · {fmtDate(st.report.finalizedAt, lang, true)}{st.report.amendedAt && <span data-testid="report-amended"> · {t("عُدّل", "Edited")} {fmtDate(st.report.amendedAt, lang, true)}</span>}</div>}
           </Card>
           <p className="text-xs text-navy-400">{t("يدعم عون القرار السريري ولا يحل محل حكم الطبيب.", "Aoun supports clinical decision-making and does not replace the physician's judgement.")}</p>
         </div>
