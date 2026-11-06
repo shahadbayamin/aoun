@@ -523,6 +523,7 @@ model RadiologyReport {
   text        String
   author      String
   finalizedAt DateTime
+  amendedAt   DateTime? // set when the radiologist corrects the report after upload
 }
 
 // ───────────────────────────── Synchronization ─────────────────────────────

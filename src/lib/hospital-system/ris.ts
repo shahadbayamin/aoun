@@ -191,3 +191,16 @@ export async function approveStudy(hospitalId: string, sourceStudyId: string, ac
   kickJob(job.id);
   return { study: updated, job, alreadyApproved: false };
 }
+
+/**
+ * Correct the report of a study this radiologist already uploaded («تعديل التقرير»).
+ * Only the report text changes — the images stay locked. Returns the updated hospital record.
+ */
+export async function amendSourceReport(hospitalId: string, sourceStudyId: string, userId: string, reportText: string) {
+  const study = await prisma.sourceStudy.findFirst({ where: { id: sourceStudyId, hospitalId } });
+  if (!study) throw notFound("Study not found");
+  if (study.radiologistUserId !== userId) throw new ApiError(403, "NOT_REPORT_AUTHOR", "يمكن لكاتب التقرير فقط تعديله / Only the report's author can edit it");
+  const text = reportText.trim();
+  if (text.length < 10) throw badRequest("اكتب تقريراً مختصراً (10 أحرف على الأقل)");
+  return prisma.sourceStudy.update({ where: { id: study.id }, data: { reportText: text } });
+}

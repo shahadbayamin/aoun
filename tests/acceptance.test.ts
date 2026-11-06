@@ -170,6 +170,25 @@ describe("The Taree workflow", () => {
     expect(sha(new Uint8Array(await r.arrayBuffer()))).toBe(sha(asset("demo-mri-cine.mp4")));
   });
 
+  it("the radiologist can correct the uploaded report; patient and doctor see the new text — nobody else can edit it", async () => {
+    const fixed = `MRI brain (corrected): small old lacunar infarct, no acute findings. ${Date.now()}`;
+    const r = await rad.json("PUT", `/api/radiology/studies/${studyId}/report`, { reportText: fixed });
+    expect(r.status).toBe(200);
+    expect(r.data.amendedAt).toBeTruthy();
+    const st = await prisma.imagingStudy.findUniqueOrThrow({ where: { id: tareeStudyId }, include: { report: true } });
+    expect(st.report?.text).toBe(fixed);
+    expect((await prisma.sourceStudy.findUniqueOrThrow({ where: { id: studyId } })).reportText).toBe(fixed);
+    const view = await fahad.page(`/er/record/${grantId}/study/${tareeStudyId}`);
+    expect(view.html).toContain(fixed.slice(0, 30));
+    expect(view.html).toContain("report-amended");
+    expect((await sara.page(`/patient/study/${tareeStudyId}`)).html).toContain(fixed.slice(0, 30));
+    // another hospital's radiologist, a too-short report, and anonymous users are refused
+    expect((await fahad.json("PUT", `/api/radiology/studies/${studyId}/report`, { reportText: "Overwritten by someone else" })).status).toBe(404);
+    expect((await rad.json("PUT", `/api/radiology/studies/${studyId}/report`, { reportText: "short" })).status).toBe(400);
+    expect((await new Client("anon").json("PUT", `/api/radiology/studies/${studyId}/report`, { reportText: "Anonymous edit attempt" })).status).toBe(401);
+    expect(await prisma.auditLog.count({ where: { action: "RIS_REPORT_AMENDED", resourceId: studyId } })).toBe(1);
+  });
+
   it("10. after a refresh the record still exists", async () => {
     expect((await fahad.page(`/er/record/${grantId}`)).html).toContain(tareeStudyId);
     expect((await sara.page("/patient?tab=imaging")).html).toContain(tareeStudyId);

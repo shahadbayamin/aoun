@@ -6,6 +6,7 @@ import { fmtDate, label, MODALITY } from "@/lib/labels";
 import { TableWrap } from "@/components/ui";
 import { UploadForm } from "./upload";
 import { SyncBadge } from "./sync-badge";
+import { ReportEditor } from "./report-editor";
 
 export default async function Radiology() {
   const { t, lang } = await getT();
@@ -29,7 +30,7 @@ export default async function Radiology() {
         <div className="card-pad">
           <TableWrap>
             <table className="table">
-              <thead><tr><th>{t("المريض", "Patient")}</th><th>{t("النوع", "Type")}</th><th>{t("الملفات", "Files")}</th><th>{t("الوقت", "Time")}</th><th>{t("حالة المزامنة", "Sync status")}</th></tr></thead>
+              <thead><tr><th>{t("المريض", "Patient")}</th><th>{t("النوع", "Type")}</th><th>{t("الملفات", "Files")}</th><th>{t("الوقت", "Time")}</th><th>{t("حالة المزامنة", "Sync status")}</th><th>{t("التقرير", "Report")}</th></tr></thead>
               <tbody>
                 {recent.map((r) => (
                   <tr key={r.id}>
@@ -38,9 +39,10 @@ export default async function Radiology() {
                     <td className="max-w-[220px] truncate text-xs"><span dir="ltr">{r.files[0]?.fileName}</span>{r.files.length > 1 && <span className="ms-1 font-semibold text-teal"> +{r.files.length - 1}</span>}</td>
                     <td className="whitespace-nowrap text-xs">{fmtDate(r.createdAt, lang, true)}</td>
                     <td><SyncBadge status={r.syncJobs[0]?.status ?? "PENDING"} /></td>
+                    <td>{r.radiologistUserId === s.userId ? <ReportEditor studyId={r.id} reportText={r.reportText} patientName={lang === "ar" ? r.hospitalPatient.fullNameAr : r.hospitalPatient.fullNameEn} /> : <span className="text-xs text-navy-400">—</span>}</td>
                   </tr>
                 ))}
-                {recent.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-navy-400">—</td></tr>}
+                {recent.length === 0 && <tr><td colSpan={6} className="py-6 text-center text-navy-400">—</td></tr>}
               </tbody>
             </table>
           </TableWrap>
