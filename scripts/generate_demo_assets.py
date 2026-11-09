@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate SYNTHETIC demonstration imaging assets for Taree.
+Generate SYNTHETIC demonstration imaging assets for Aoun.
 
 Everything produced here is computer-generated (mathematical phantoms). No real patient
 data is used. Output goes to ./demo-assets and is committed with the repository, so this
@@ -141,7 +141,7 @@ def report_pdf(path, title, lines):
     c.rect(0, h - 70, w, 70, fill=1, stroke=0)
     c.setFillColorRGB(1, 1, 1)
     c.setFont("Helvetica-Bold", 18)
-    c.drawString(40, h - 45, "Taree Demo Hospital - Radiology Report")
+    c.drawString(40, h - 45, "Aoun Demo Hospital - Radiology Report")
     c.setFillColorRGB(0.85, 0.18, 0.13)
     c.setFont("Helvetica-Bold", 10)
     c.drawString(40, h - 92, "FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL PATIENT - NOT FOR CLINICAL USE")

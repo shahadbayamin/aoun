@@ -4,7 +4,7 @@ import { decryptSecret, hmacHex, safeEqual, sha256 } from "../crypto";
 import { ApiError } from "../errors";
 
 /**
- * Hospital → Taree request authentication (HMAC-SHA256 request signing).
+ * Hospital → Aoun request authentication (HMAC-SHA256 request signing).
  *
  *   signature = HMAC(secret, `${timestamp}\n${METHOD}\n${path}\n${sha256(body)}`)
  *
@@ -12,7 +12,7 @@ import { ApiError } from "../errors";
  *          X-Taree-Event-Id (idempotency key), X-Taree-Signature (hex).
  * Requests older than 5 minutes are rejected (replay window); event ids are recorded
  * in IntegrationReceipt so replays inside the window are idempotent.
- * Production: add mutual TLS between hospital gateways and Taree on top of this.
+ * Production: add mutual TLS between hospital gateways and Aoun on top of this.
  */
 export const H = {
   hospital: "x-taree-hospital",

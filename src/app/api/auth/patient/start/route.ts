@@ -41,7 +41,7 @@ export const POST = route(async (req) => {
     } catch {
       throw new ApiError(429, "SMS_TOO_SOON", "انتظر 30 ثانية قبل طلب رمز جديد / Wait 30 seconds before requesting a new code");
     }
-    const sent = await sendSms(phone, `رمز الدخول إلى عون: ${code}\nصالح 5 دقائق. لا تشاركه مع أحد.\nTaree code: ${code}`);
+    const sent = await sendSms(phone, `رمز الدخول إلى عون: ${code}\nصالح 5 دقائق. لا تشاركه مع أحد.\nAoun code: ${code}`);
     if (!sent.ok) {
       console.error("[sms] sending failed:", sent.error);
       throw new ApiError(502, "SMS_FAILED", "تعذّر إرسال الرمز إلى الجوال، حاول مرة أخرى / Could not send the code, try again");

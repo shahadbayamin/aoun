@@ -11,7 +11,7 @@ import { ApiError } from "../errors";
 import { pacsUrlPrefix } from "../hospital-system/pacs";
 
 /**
- * Taree central platform — inbound imaging study ingestion.
+ * Aoun central platform — inbound imaging study ingestion.
  * Called by POST /api/integrations/imaging-studies after the hospital's signature is verified.
  */
 
@@ -71,7 +71,7 @@ async function matchPatient(hospitalId: string, p: StudyPayload["patient"]) {
     where: { idType_identifierHash_scope: { idType: p.idType, identifierHash: idHash, scope: "GLOBAL" } },
     include: { patient: true },
   });
-  if (!mapping) return { patientId: null, reason: "NO_VERIFIED_IDENTITY: identifier not registered in Taree" };
+  if (!mapping) return { patientId: null, reason: "NO_VERIFIED_IDENTITY: identifier not registered in Aoun" };
   if (!mapping.verified) return { patientId: null, reason: "UNVERIFIED_IDENTITY: identity mapping is not verified" };
   const dob = mapping.patient.dateOfBirth.toISOString().slice(0, 10);
   if (dob !== p.dateOfBirth) return { patientId: null, reason: "DEMOGRAPHIC_MISMATCH: date of birth does not match verified identity" };

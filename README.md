@@ -4,7 +4,7 @@
 
 Aoun is a web platform that lets hospitals share medical imaging securely. When a patient arrives at a different hospital, the doctor scans the patient's card and immediately sees the imaging, reports and key medical information from other hospitals. There is no need to repeat a scan or wait for files.
 
-> All patients, hospitals, doctors and images in this project are fictional and for demonstration only.
+> All patients, hospitals and doctors in this project are fictional and for demonstration only. The imaging is either synthetic or public, anonymised teaching material.
 >
 > Sample imaging and report text used in the live demo come from cases on [Radiopaedia.org](https://radiopaedia.org), shared under the Creative Commons [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) licence and used here for non-commercial demonstration.
 

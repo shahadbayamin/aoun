@@ -7,7 +7,7 @@ import { EMERGENCY_PURPOSES, PURPOSES } from "./labels";
 import type { Scope } from "./access";
 
 /**
- * Access authorization workflow (Hospital B ⇄ patient ⇄ Taree).
+ * Access authorization workflow (Hospital B ⇄ patient ⇄ Aoun).
  *
  *  QR scan (QrScan context, 15 min)  ──►  ORDINARY: AccessRequest → patient approves → AccessGrant (CONSENT, 12 h)
  *                                    └─►  EMERGENCY: verified + attested break-glass → AccessGrant (EMERGENCY, 4 h)

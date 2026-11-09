@@ -1,6 +1,6 @@
 /**
- * End-to-end test of the ONE Taree workflow (spec §6), against a running server:
- *   Hospital A "حفظ وتأكيد" → Taree saves & links to the patient → patient QR → Hospital B scan → same file.
+ * End-to-end test of the ONE Aoun workflow (spec §6), against a running server:
+ *   Hospital A "حفظ وتأكيد" → Aoun saves & links to the patient → patient QR → Hospital B scan → same file.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import fs from "node:fs";
@@ -32,7 +32,7 @@ beforeAll(async () => {
 });
 afterAll(() => prisma.$disconnect());
 
-describe("The Taree workflow", () => {
+describe("The Aoun workflow", () => {
   it("starts with no hardcoded imaging records", async () => {
     expect(await prisma.imagingStudy.count()).toBe(0);
   });

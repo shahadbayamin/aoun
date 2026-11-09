@@ -14,3 +14,4 @@ wallet/apple/*.pem
 wallet/apple/*.key
 wallet/apple/*.cer
 wallet/google/*.json
+__pycache__

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { route } from "@/lib/api";
 import { radiologyCtx } from "@/lib/portal-ctx";
-import { approveStudy, attachFile, createDraftStudy, findOrRegisterHospitalPatient, nationalIdForTareePatient } from "@/lib/hospital-system/ris";
+import { approveStudy, attachFile, createDraftStudy, findOrRegisterHospitalPatient, nationalIdForAounPatient } from "@/lib/hospital-system/ris";
 import { requireApi } from "@/lib/auth";
 import { authorizeGrant } from "@/lib/access";
 import { env } from "@/lib/env";
@@ -20,7 +20,7 @@ const MODALITIES = ["XRAY", "MRI", "CT", "ULTRASOUND", "OTHER"] as const;
 /**
  * "حفظ وتأكيد" — ONE request does everything on the hospital side:
  * saves the file(s) in the hospital PACS (encrypted) — one study may hold several images — records the report, approves the study and
- * queues the automatic synchronization to Taree. The page then follows the real sync status.
+ * queues the automatic synchronization to Aoun. The page then follows the real sync status.
  */
 export const POST = route(async (req) => {
   const { s, ctx, actor } = await radiologyCtx("RIS_SAVE_CONFIRM");
@@ -32,7 +32,7 @@ export const POST = route(async (req) => {
     // Added from a scanned card: the patient comes from the doctor's active grant — no ID typing.
     const er = await requireApi("ER");
     const { grant } = await authorizeGrant(er, grantId, "IMAGING", "RIS_ADD_FROM_CARD");
-    const id = await nationalIdForTareePatient(grant.patientId);
+    const id = await nationalIdForAounPatient(grant.patientId);
     if (!id) throw badRequest("تعذّر تحديد هوية المريض تلقائياً، أدخل رقم الهوية / Could not determine the patient ID automatically, enter it");
     nationalId = id;
   }

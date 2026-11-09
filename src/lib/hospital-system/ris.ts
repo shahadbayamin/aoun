@@ -11,7 +11,7 @@ import { kickJob } from "../sync/engine";
 /**
  * Simulated hospital Radiology Information System (RIS).
  * This module only touches the hospital-local tables (HospitalPatientIndex, SourceStudy, SourceFile)
- * and enqueues outbound SyncJobs. It never writes to Taree's unified record directly.
+ * and enqueues outbound SyncJobs. It never writes to Aoun's unified record directly.
  */
 
 export const hospitalIdHash = (hospitalId: string, nationalId: string) =>
@@ -37,11 +37,11 @@ export async function findOrRegisterHospitalPatient(hospitalId: string, national
 }
 
 /**
- * National ID of a Taree patient, recovered from a hospital's own (encrypted) patient index —
+ * National ID of a Aoun patient, recovered from a hospital's own (encrypted) patient index —
  * used when a doctor adds imaging straight from a scanned card, so they don't retype the ID.
- * Taree itself never stores the raw ID; we match each hospital entry by its keyed hash.
+ * Aoun itself never stores the raw ID; we match each hospital entry by its keyed hash.
  */
-export async function nationalIdForTareePatient(patientId: string) {
+export async function nationalIdForAounPatient(patientId: string) {
   const maps = await prisma.identityMapping.findMany({ where: { patientId, scope: "GLOBAL" }, select: { identifierHash: true } });
   const want = new Set(maps.map((m) => m.identifierHash));
   if (!want.size) return null;
@@ -174,7 +174,7 @@ export async function approveStudy(hospitalId: string, sourceStudyId: string, ac
     await tx.syncEvent.createMany({
       data: [
         { jobId: job.id, hospitalId, type: "STUDY_APPROVED", message: "Study approved and finalized in hospital RIS" },
-        { jobId: job.id, hospitalId, type: "JOB_CREATED", message: "Outbound synchronization job queued for Taree" },
+        { jobId: job.id, hospitalId, type: "JOB_CREATED", message: "Outbound synchronization job queued for Aoun" },
       ],
     });
     const updated = await tx.sourceStudy.findUniqueOrThrow({ where: { id: sourceStudyId } });

@@ -13,7 +13,7 @@ import { issueFileToken, pacsFileUrl } from "../hospital-system/pacs";
  * Lifecycle:  PENDING → SENDING → SYNCED
  *                           ↘ RETRY (exponential backoff) → SENDING …
  *                           ↘ FAILED (non-retryable or attempts exhausted)
- *                           ↘ QUARANTINED (Taree could not safely match the patient)
+ *                           ↘ QUARANTINED (Aoun could not safely match the patient)
  *
  * Jobs are claimed atomically (conditional UPDATE) so the immediate kick, the background
  * worker and manual retries can never process the same attempt twice.
@@ -97,7 +97,7 @@ export async function processJob(jobId: string): Promise<SyncJob | null> {
   const job = await claim(jobId);
   if (!job) return null;
   const hospital = await prisma.hospital.findUniqueOrThrow({ where: { id: job.hospitalId } });
-  await event(job, "SENDING", `Attempt ${job.attempts}/${job.maxAttempts}: sending study to Taree integration API`);
+  await event(job, "SENDING", `Attempt ${job.attempts}/${job.maxAttempts}: sending study to Aoun integration API`);
   await stagePause();
 
   try {
@@ -130,8 +130,8 @@ export async function processJob(jobId: string): Promise<SyncJob | null> {
         },
       });
       await event(job, json.duplicate ? "DUPLICATE_ACKNOWLEDGED" : "SYNCED", json.duplicate
-        ? "Taree already holds this study (idempotent duplicate) — marked as synced"
-        : "Study linked to the patient's unified medical record in Taree", { referenceNumber: json.referenceNumber });
+        ? "Aoun already holds this study (idempotent duplicate) — marked as synced"
+        : "Study linked to the patient's unified medical record in Aoun", { referenceNumber: json.referenceNumber });
       await audit({
         actor: { label: `system:sync:${hospital.code}`, role: "SYSTEM", hospitalId: hospital.id },
         action: "SYNC_COMPLETED",
@@ -152,11 +152,11 @@ export async function processJob(jobId: string): Promise<SyncJob | null> {
           lastError: String(json.reason ?? "Patient identity could not be verified"),
         },
       });
-      await event(job, "QUARANTINED", "Taree received the study but quarantined it for identity reconciliation", { reason: json.reason });
+      await event(job, "QUARANTINED", "Aoun received the study but quarantined it for identity reconciliation", { reason: json.reason });
       return q;
     }
     const retryable = res.status >= 500 || res.status === 429 || json.retryable === true;
-    throw new SyncError(`Taree responded ${res.status}: ${json.message ?? json.error ?? "error"}`, retryable, String(json.error ?? res.status));
+    throw new SyncError(`Aoun responded ${res.status}: ${json.message ?? json.error ?? "error"}`, retryable, String(json.error ?? res.status));
   } catch (e) {
     const err = e instanceof SyncError ? e : new SyncError((e as Error).message, true);
     const canRetry = err.retryable && job.attempts < job.maxAttempts;

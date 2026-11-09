@@ -1,9 +1,9 @@
-// Taree (طارئ) — data model
+// Aoun (عون) — data model
 //
 // The schema is split into two logical domains that live in the same database
 // for the MVP but never read each other's tables directly:
 //
-//   1. Taree platform (central unified record): User, Patient, ImagingStudy, ...
+//   1. Aoun platform (central unified record): User, Patient, ImagingStudy, ...
 //   2. Simulated hospital systems (RIS/PACS of each participating hospital):
 //      HospitalPatientIndex, SourceStudy, SourceFile.
 //
@@ -227,7 +227,7 @@ model Patient {
   fullNameEn         String
   dateOfBirth        DateTime  @db.Date
   sex                Sex
-  maskedId           String // e.g. 1•••••4321 — the raw national ID is never stored by Taree
+  maskedId           String // e.g. 1•••••4321 — the raw national ID is never stored by Aoun
   identityVerified   Boolean   @default(false)
   identityVerifiedAt DateTime?
   identitySource     String? // e.g. "DEV_IDENTITY_PROVIDER"
@@ -472,7 +472,7 @@ model SourceFile {
   createdAt     DateTime    @default(now())
 }
 
-// ───────────────────────── Taree unified imaging record ─────────────────────────
+// ───────────────────────── Aoun unified imaging record ─────────────────────────
 
 model ImagingStudy {
   id               String      @id @default(cuid())
@@ -530,7 +530,7 @@ model RadiologyReport {
 
 model SyncJob {
   id               String      @id @default(cuid())
-  eventId          String      @unique // stable idempotency key sent to Taree
+  eventId          String      @unique // stable idempotency key sent to Aoun
   sourceStudyId    String
   sourceStudy      SourceStudy @relation(fields: [sourceStudyId], references: [id], onDelete: Cascade)
   hospitalId       String

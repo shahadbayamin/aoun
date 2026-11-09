@@ -11,7 +11,7 @@ import { ApiError, notFound, unauthorized } from "@/lib/errors";
 export const runtime = "nodejs";
 
 /**
- * Taree unified-record file access. There are NO public file URLs: every byte is decrypted and
+ * Aoun unified-record file access. There are NO public file URLs: every byte is decrypted and
  * streamed only after server-side authorization, and every access is audited.
  *   ?grant=<id>  → Hospital B professional with an active grant covering IMAGING for this patient
  *   ?qr=<token>  → the patient's QR link while the code is valid (shown by the patient)

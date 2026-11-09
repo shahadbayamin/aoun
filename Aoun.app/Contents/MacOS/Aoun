@@ -14,7 +14,7 @@ fail() {
 }
 
 case "$APP" in
-  */AppTranslocation/*) fail "انقل مجلد عون بالكامل إلى سطح المكتب أو المستندات ثم افتح التطبيق مرة أخرى. / Move the whole Taree folder to Desktop or Documents, then open the app again." ;;
+  */AppTranslocation/*) fail "انقل مجلد عون بالكامل إلى سطح المكتب أو المستندات ثم افتح التطبيق مرة أخرى. / Move the whole Aoun folder to Desktop or Documents, then open the app again." ;;
 esac
 [ -f "$ROOT/package.json" ] || fail "لم يتم العثور على ملفات المشروع بجانب التطبيق. / Project files not found next to the app."
 
@@ -40,7 +40,7 @@ cd "$ROOT" || fail "Cannot open $ROOT"
 
 # ---- Dependencies (first run, or after an update) ----
 if [ ! -f node_modules/.taree-installed ] || [ package-lock.json -nt node_modules/.taree-installed ]; then
-  osascript -e "display dialog \"الإعداد الأول قد يستغرق بضع دقائق. سيفتح عون في المتصفح تلقائياً عند الانتهاء.\" & return & return & \"First-time setup can take a few minutes. Taree will open in your browser automatically when ready.\" with title \"$TITLE\" buttons {\"OK\"} default button 1 giving up after 15" >/dev/null 2>&1 &
+  osascript -e "display dialog \"الإعداد الأول قد يستغرق بضع دقائق. سيفتح عون في المتصفح تلقائياً عند الانتهاء.\" & return & return & \"First-time setup can take a few minutes. Aoun will open in your browser automatically when ready.\" with title \"$TITLE\" buttons {\"OK\"} default button 1 giving up after 15" >/dev/null 2>&1 &
   npm ci --no-audit --no-fund || fail "تعذّر تثبيت المكونات — تحقق من الإنترنت. / Installing components failed — check your internet connection."
   "$NODE" node_modules/prisma/build/index.js generate || fail "Prisma generate failed"
   touch node_modules/.taree-installed

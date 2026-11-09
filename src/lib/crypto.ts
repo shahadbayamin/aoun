@@ -19,7 +19,7 @@ export function safeEqual(a: string, b: string) {
 /** Normalize a national ID / Iqama: digits only. */
 export const normalizeId = (id: string) => onlyDigits(id);
 
-/** Keyed hash for identifiers. Taree never stores raw national IDs. */
+/** Keyed hash for identifiers. Aoun never stores raw national IDs. */
 export function hashIdentifier(idType: string, value: string, scope = "GLOBAL") {
   return hmacHex(env.identityPepper, `${idType}:${scope}:${normalizeId(value) || value.trim().toUpperCase()}`);
 }

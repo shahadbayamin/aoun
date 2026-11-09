@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Taree integration API — participating hospitals push APPROVED imaging studies here.
+ * Aoun integration API — participating hospitals push APPROVED imaging studies here.
  * Auth: HMAC-SHA256 signed request (see src/lib/integration/hmac.ts). Idempotent on event id + Study Instance UID.
  * 201 = linked, 200 = duplicate (already linked), 202 = received but quarantined, 4xx/5xx = rejected / retryable.
  */

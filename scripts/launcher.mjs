@@ -194,7 +194,7 @@ if (!fs.existsSync(path.join(ROOT, ".next", "BUILD_ID"))) {
   run([bin("next/dist/bin/next"), "build"], "next build");
 }
 
-// Remember which build is running (lets Taree.app restart automatically after an update)
+// Remember which build is running (lets Aoun.app restart automatically after an update)
 try { fs.writeFileSync(path.join(DATA, "running-build"), fs.readFileSync(path.join(ROOT, ".next", "BUILD_ID"), "utf8").trim()); } catch {}
 
 // 5) Start the website
