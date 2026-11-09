@@ -73,8 +73,8 @@ A patient's imaging (X-ray, CT, MRI) stays inside the hospital that produced it.
 | Web app | Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS (Arabic RTL + English) |
 | Data | PostgreSQL with Prisma ORM |
 | Imaging | Built-in viewer for DICOM, images, video and PDF |
-| Hosting | Vercel + Neon (serverless Postgres) |
-| Quality | 29 end-to-end acceptance tests (Vitest) against the real HTTP API |
+| Hosting | Vercel + Prisma Postgres |
+| Quality | 30 end-to-end acceptance tests (Vitest) against the real HTTP API |
 
 ## Architecture
 
@@ -102,7 +102,7 @@ A patient's imaging (X-ray, CT, MRI) stays inside the hospital that produced it.
 
 **Online (Vercel)**
 1. Import this repository in Vercel. Next.js is detected automatically.
-2. In the project, open **Storage** and add a **Neon** Postgres database.
+2. In the project, open **Storage** and add a **Prisma Postgres** database (Neon also works).
 3. Deploy. The build applies the database migrations, generates the encryption keys and loads the demo data automatically. No manual configuration is needed.
 
 **Locally (developers)**
