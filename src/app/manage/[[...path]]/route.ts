@@ -5,6 +5,7 @@ import { pickDatabaseUrl } from "@/lib/db-url";
 import { rateLimit } from "@/lib/rate-limit";
 import { requestMeta } from "@/lib/request-meta";
 import { audit } from "@/lib/audit";
+import { latinDigits } from "@/lib/digits";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -65,7 +66,7 @@ async function handle(req: Request, ctx: { params: Promise<{ path?: string[] }> 
     const email = String(form.get("email") ?? "").trim().toLowerCase();
     const password = String(form.get("password") ?? "");
     const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
-    const ok = !!user && user.role === "ADMIN" && user.isActive && (await verifyPassword(password, user.passwordHash));
+    const ok = !!user && user.role === "ADMIN" && user.isActive && ((await verifyPassword(password, user.passwordHash)) || (latinDigits(password) !== password && (await verifyPassword(latinDigits(password), user.passwordHash))));
     await audit({ actor: { userId: user?.id, role: user?.role, label: user?.displayName ?? "anonymous" }, action: "ADMIN_LOGIN", outcome: ok ? "SUCCESS" : "DENIED", details: { email, area: "manage" } });
     if (!ok) return loginPage("البريد أو كلمة المرور غير صحيحة · Incorrect email or password");
     await createSession(user!.id, "ADMIN", null);
