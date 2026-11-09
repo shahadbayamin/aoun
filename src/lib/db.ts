@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 function create() {
   // Serverless hosting: many short-lived instances, so each keeps only a couple of connections (the database limits them).
   const serverless = !!process.env.VERCEL;
-  const adapter = new PrismaPg({ connectionString: pickDatabaseUrl()!, ...(serverless ? { max: 2, idleTimeoutMillis: 5_000 } : {}) });
+  const adapter = new PrismaPg({ connectionString: pickDatabaseUrl()!, ...(serverless ? { max: 1, idleTimeoutMillis: 2_000 } : {}) });
   return new PrismaClient({ adapter });
 }
 

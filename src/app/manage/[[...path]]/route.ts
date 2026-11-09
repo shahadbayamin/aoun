@@ -17,7 +17,7 @@ type Listener = (req: unknown, res: unknown) => Promise<void>;
 let viewer: Promise<{ listener: Listener }> | null = null;
 function getViewer() {
   viewer ??= import("../../../../scripts/db-viewer.mjs").then((m) =>
-    m.createDbViewerListener({ connectionString: pickDatabaseUrl(), checkOrigin: false, poolMax: 2, log: (...a: unknown[]) => console.log("[manage]", ...a) }),
+    m.createDbViewerListener({ connectionString: pickDatabaseUrl(), checkOrigin: false, poolMax: 1, log: (...a: unknown[]) => console.log("[manage]", ...a) }),
   );
   return viewer;
 }
